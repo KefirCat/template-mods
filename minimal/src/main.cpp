@@ -4,15 +4,17 @@
 using namespace geode::prelude;
 
 class $modify(FPSPlayLayer, PlayLayer) {
-    void update(float dt) {
-        PlayLayer::update(dt);
-        // Ограничиваем количество активных частиц на уровне для повышения FPS
-        if (this->m_particleSystems) {
-            for (auto* ps : CCArrayExt<cocos2d::CCParticleSystem*>(this->m_particleSystems)) {
-                if (ps && ps->getTotalParticles() > 35) {
-                    ps->setTotalParticles(35);
-                }
-            }
+    bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
+        if (!PlayLayer::init(level, useReplay, dontCreateObjects)) {
+            return false;
         }
+        
+        // Переводим камеру в чистый 2D-режим без лишних расчетов глубины (снижает нагрузку на GPU и CPU)
+        if (auto* director = cocos2d::CCDirector::sharedDirector()) {
+            director->setProjection(cocos2d::kCCDirectorProjection2D);
+        }
+        
+        log::info("FPS Boost activated for level!");
+        return true;
     }
 };
